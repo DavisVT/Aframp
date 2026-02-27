@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Clock, Star } from 'lucide-react'
 
 interface Biller {
@@ -124,9 +123,7 @@ export function RecentBillers({ billers, searchQuery, loading }: RecentBillersPr
                           {biller.category.replace('-', ' ')}
                         </Badge>
 
-                        <div
-                          className="h-8 px-3 text-xs flex items-center gap-1 rounded-md transition-colors group-hover:bg-primary group-hover:text-primary-foreground text-muted-foreground"
-                        >
+                        <div className="h-8 px-3 text-xs flex items-center gap-1 rounded-md transition-colors group-hover:bg-primary group-hover:text-primary-foreground text-muted-foreground">
                           <Clock className="h-3 w-3" />
                           Pay Now
                         </div>

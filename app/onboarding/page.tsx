@@ -1,5 +1,5 @@
-import { FirstPurchaseTutorial } from '@/components/onboarding/first-purchase-tutorial'
+import { WalletSetupClient } from '@/components/onboarding/wallet-setup-client'
 
 export default function OnboardingPage() {
-  return <FirstPurchaseTutorial />
+  return <WalletSetupClient />
 }

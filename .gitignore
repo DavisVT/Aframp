@@ -7,3 +7,5 @@ build
 .vscode
 .DS_Store
 requirements.md
+.vercel
+.env*.local
