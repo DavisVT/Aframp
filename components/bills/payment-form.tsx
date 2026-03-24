@@ -39,14 +39,17 @@ export function PaymentForm({ schema }: PaymentFormProps) {
   const [showSchedule, setShowSchedule] = useState(false)
 
   // 1. Generate dynamic Zod schema
-  const formSchemaObject: Record<string, z.ZodString> = {}
+  const formSchemaObject: any = {}
   schema.fields.forEach((field) => {
-    let validator = z.string()
+    let validator: any = z.string()
     if (field.validation.required) {
       validator = validator.min(1, field.validation.message || `${field.label} is required`)
     }
     if (field.validation.pattern) {
-      validator = validator.regex(new RegExp(field.validation.pattern), field.validation.message)
+      validator = (validator as z.ZodString).regex(
+        new RegExp(field.validation.pattern),
+        field.validation.message
+      )
     }
     formSchemaObject[field.name] = validator
   })
@@ -67,42 +70,34 @@ export function PaymentForm({ schema }: PaymentFormProps) {
 
   const watchedValues = useWatch({ control })
 
-  // 2. Define parsedAmount (was missing)
+  // 2. Define parsedAmount
   const amountField = schema.fields.find((f) => f.name === 'amount' || f.type === 'number')
-  const amountValue = amountField?.name ? watchedValues[amountField.name] : ''
-  const parsedAmount = parseFloat((amountValue as string) || '0')
+  const amountValue = watch(amountField?.name as any)
+  const parsedAmount = parseFloat(amountValue || '0')
 
   // 3. Logic: Account Validation
   const primaryFieldName = schema.fields[0]?.name || ''
   const accountValue = primaryFieldName ? ((watchedValues[primaryFieldName] as string) ?? '') : ''
   const accountError = primaryFieldName ? errors[primaryFieldName] : undefined
 
-  const validateAccount = useCallback(async (_value: string) => {
+  const validateAccount = async (value: string) => {
     setIsValidating(true)
     await new Promise((resolve) => setTimeout(resolve, 1500))
     setIsValidating(false)
     const mockNames = ['John Doe', 'Sarah Williams', 'Emeka Azikiwe', 'Kofi Mensah']
-    setValidatedAccount({
-      name: mockNames[Math.floor(Math.random() * mockNames.length)],
-      accountValue: _value,
-    })
-  }, [])
+    setValidatedAccount(mockNames[Math.floor(Math.random() * mockNames.length)])
+  }
 
   useEffect(() => {
-    if (accountValue && accountValue.length >= 10 && !accountError) {
+    if (accountValue && accountValue.length >= 10 && !errors[schema.fields[0].name]) {
       const delayDebounceFn = setTimeout(() => {
-        validateAccount(accountValue)
+        validateAccount()
       }, 1000)
       return () => clearTimeout(delayDebounceFn)
+    } else {
+      setValidatedAccount(null)
     }
-  }, [accountError, accountValue, validateAccount])
-
-  const isAccountValidatedForCurrentInput = Boolean(
-    validatedAccount &&
-      validatedAccount.accountValue === accountValue &&
-      accountValue.length >= 10 &&
-      !accountError
-  )
+  }, [accountValue, errors[schema.fields[0].name]])
 
   // 4. Logic: Form Submission
   const onSubmit = async (_data: FormValues) => {
@@ -205,7 +200,7 @@ export function PaymentForm({ schema }: PaymentFormProps) {
               <Checkbox
                 id="schedule"
                 checked={showSchedule}
-                onCheckedChange={(checked: CheckedState) => setShowSchedule(checked === true)}
+                onCheckedChange={(checked: any) => setShowSchedule(!!checked)}
               />
             </div>
 
