@@ -15,6 +15,18 @@ import {
   RefreshCcw,
   XCircle,
 } from 'lucide-react'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -32,6 +44,8 @@ interface Transaction {
 type SortField = 'date' | 'type' | 'asset' | 'amount' | 'status'
 type SortDirection = 'asc' | 'desc'
 type QuickFilter = 'all' | 'onramp' | 'offramp' | 'billpay' | 'failed'
+type StatusFilter = 'all' | Transaction['status']
+type PeriodFilter = '7d' | '30d' | 'all'
 
 const PAGE_SIZE = 5
 
@@ -273,6 +287,8 @@ function Pagination({
 
 export function TransactionHistory() {
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('30d')
   const [sortField, setSortField] = useState<SortField>('date')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [page, setPage] = useState(1)
@@ -289,10 +305,28 @@ export function TransactionHistory() {
   ]
 
   const filteredTransactions = useMemo(() => {
-    if (quickFilter === 'all') return mockTransactions
-    if (quickFilter === 'failed') return mockTransactions.filter((tx) => tx.status === 'failed')
-    return mockTransactions.filter((tx) => tx.type === quickFilter)
-  }, [quickFilter])
+    const now = new Date('2026-02-26T23:59:59.999Z')
+    const rangeStart =
+      periodFilter === '7d'
+        ? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        : periodFilter === '30d'
+          ? new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+          : null
+
+    return mockTransactions.filter((tx) => {
+      const byQuickFilter =
+        quickFilter === 'all'
+          ? true
+          : quickFilter === 'failed'
+            ? tx.status === 'failed'
+            : tx.type === quickFilter
+
+      const byStatus = statusFilter === 'all' ? true : tx.status === statusFilter
+      const byPeriod = rangeStart ? new Date(tx.date) >= rangeStart : true
+
+      return byQuickFilter && byStatus && byPeriod
+    })
+  }, [periodFilter, quickFilter, statusFilter])
 
   const sortedTransactions = useMemo(() => {
     const valueByStatus: Record<Transaction['status'], number> = {
@@ -375,6 +409,49 @@ export function TransactionHistory() {
     setPage(1)
   }
 
+  const volumeChartData = useMemo(() => {
+    const grouped = filteredTransactions.reduce<Record<string, number>>((acc, tx) => {
+      const label = new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }).format(new Date(tx.date))
+      acc[label] = (acc[label] ?? 0) + tx.amount
+      return acc
+    }, {})
+
+    return Object.entries(grouped).map(([date, amount]) => ({
+      date,
+      amount,
+    }))
+  }, [filteredTransactions])
+
+  const typeDistributionData = useMemo(() => {
+    const total = filteredTransactions.length
+    const byType = filteredTransactions.reduce<Record<Transaction['type'], number>>(
+      (acc, tx) => {
+        acc[tx.type] += 1
+        return acc
+      },
+      {
+        onramp: 0,
+        offramp: 0,
+        billpay: 0,
+      }
+    )
+
+    return (Object.keys(byType) as Array<Transaction['type']>).map((type) => ({
+      name: typeConfig[type].label,
+      value: byType[type],
+      percentage: total > 0 ? Math.round((byType[type] / total) * 100) : 0,
+      color:
+        type === 'onramp'
+          ? '#10b981'
+          : type === 'offramp'
+            ? '#f59e0b'
+            : '#8b5cf6',
+    }))
+  }, [filteredTransactions])
+
   const onTouchStart = (xPosition: number) => {
     touchStartX.current = xPosition
   }
@@ -423,6 +500,106 @@ export function TransactionHistory() {
               {filter.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted/20 p-3">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Filters
+        </span>
+        <select
+          value={statusFilter}
+          onChange={(event) => {
+            setStatusFilter(event.target.value as StatusFilter)
+            setPage(1)
+          }}
+          className="h-8 rounded-md border border-border bg-background px-2.5 text-sm text-foreground outline-none"
+          aria-label="Filter by status"
+        >
+          <option value="all">All status</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
+          <option value="failed">Failed</option>
+        </select>
+        <select
+          value={periodFilter}
+          onChange={(event) => {
+            setPeriodFilter(event.target.value as PeriodFilter)
+            setPage(1)
+          }}
+          className="h-8 rounded-md border border-border bg-background px-2.5 text-sm text-foreground outline-none"
+          aria-label="Filter by date range"
+        >
+          <option value="7d">Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="all">All time</option>
+        </select>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2.5"
+          onClick={() => {
+            setQuickFilter('all')
+            setStatusFilter('all')
+            setPeriodFilter('30d')
+            setPage(1)
+          }}
+        >
+          Reset
+        </Button>
+      </div>
+
+      <div className="mb-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <div className="rounded-xl border border-border p-4">
+          <p className="mb-3 text-sm font-semibold text-foreground">Transaction Volume</p>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={volumeChartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip formatter={(value) => [`NGN ${formatAmount(Number(value))}`, 'Amount']} />
+                <Bar dataKey="amount" radius={[8, 8, 0, 0]} fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="rounded-xl border border-border p-4">
+          <p className="mb-3 text-sm font-semibold text-foreground">Transaction Types</p>
+          <div className="flex h-52 items-center gap-4">
+            <div className="h-full w-[55%]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={typeDistributionData}
+                    dataKey="value"
+                    innerRadius={45}
+                    outerRadius={72}
+                    paddingAngle={2}
+                  >
+                    {typeDistributionData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="w-[45%] space-y-2">
+              {typeDistributionData.map((entry) => (
+                <div key={entry.name} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <span className="text-muted-foreground">{entry.name}</span>
+                  </div>
+                  <span className="font-semibold text-foreground">{entry.percentage}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
