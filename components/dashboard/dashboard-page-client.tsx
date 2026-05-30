@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
 import { DashboardContent } from '@/components/dashboard/dashboard-content'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { walletSession } from '@/lib/wallet/session'
 
 interface DashboardPageClientProps {
   initialWallet?: string

@@ -5,9 +5,8 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock, Star, ArrowRight } from 'lucide-react'
+import { Star, ArrowRight } from 'lucide-react'
 import { BillerIcon } from '@/components/bills/biller-icons'
-import { cn } from '@/lib/utils'
 
 interface Biller {
   id: string
@@ -73,7 +72,10 @@ export function RecentBillers({ billers, searchQuery, loading }: RecentBillersPr
     <section className="space-y-6 mt-12">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold font-cal-sans tracking-tight">Recent Billers</h2>
-        <Badge variant="outline" className="text-xs border-white/10 bg-white/5 px-3 py-1 rounded-full">
+        <Badge
+          variant="outline"
+          className="text-xs border-white/10 bg-white/5 px-3 py-1 rounded-full"
+        >
           <span className="text-primary mr-1">{recentBillers.length}</span> billers
         </Badge>
       </div>
@@ -114,7 +116,10 @@ export function RecentBillers({ billers, searchQuery, loading }: RecentBillersPr
                       </div>
 
                       <div className="flex items-center justify-between mt-auto">
-                        <Badge variant="secondary" className="bg-white/5 hover:bg-white/10 text-xs text-muted-foreground capitalize border-none font-medium">
+                        <Badge
+                          variant="secondary"
+                          className="bg-white/5 hover:bg-white/10 text-xs text-muted-foreground capitalize border-none font-medium"
+                        >
                           {biller.category.replace('-', ' ')}
                         </Badge>
 

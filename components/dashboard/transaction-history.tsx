@@ -12,23 +12,10 @@ import {
   ChevronRight,
   Clock,
   Eye,
-  ExternalLink,
   Receipt,
   RefreshCcw,
   XCircle,
 } from 'lucide-react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -298,7 +285,10 @@ function Pagination({
 function useVirtualList<T>(items: T[], rowHeight: number, containerHeight: number) {
   const [scrollTop, setScrollTop] = useState(0)
   const visibleStart = Math.max(0, Math.floor(scrollTop / rowHeight) - 2)
-  const visibleEnd = Math.min(items.length, Math.ceil((scrollTop + containerHeight) / rowHeight) + 2)
+  const visibleEnd = Math.min(
+    items.length,
+    Math.ceil((scrollTop + containerHeight) / rowHeight) + 2
+  )
   const visibleItems = items.slice(visibleStart, visibleEnd).map((item, i) => ({
     item,
     index: visibleStart + i,
@@ -309,8 +299,8 @@ function useVirtualList<T>(items: T[], rowHeight: number, containerHeight: numbe
 
 export function TransactionHistory() {
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('30d')
+  const [statusFilter] = useState<StatusFilter>('all')
+  const [periodFilter] = useState<PeriodFilter>('30d')
   const [sortField, setSortField] = useState<SortField>('date')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [page, setPage] = useState(1)
@@ -450,49 +440,6 @@ export function TransactionHistory() {
     setPage(1)
   }
 
-  const volumeChartData = useMemo(() => {
-    const grouped = filteredTransactions.reduce<Record<string, number>>((acc, tx) => {
-      const label = new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }).format(new Date(tx.date))
-      acc[label] = (acc[label] ?? 0) + tx.amount
-      return acc
-    }, {})
-
-    return Object.entries(grouped).map(([date, amount]) => ({
-      date,
-      amount,
-    }))
-  }, [filteredTransactions])
-
-  const typeDistributionData = useMemo(() => {
-    const total = filteredTransactions.length
-    const byType = filteredTransactions.reduce<Record<Transaction['type'], number>>(
-      (acc, tx) => {
-        acc[tx.type] += 1
-        return acc
-      },
-      {
-        onramp: 0,
-        offramp: 0,
-        billpay: 0,
-      }
-    )
-
-    return (Object.keys(byType) as Array<Transaction['type']>).map((type) => ({
-      name: typeConfig[type].label,
-      value: byType[type],
-      percentage: total > 0 ? Math.round((byType[type] / total) * 100) : 0,
-      color:
-        type === 'onramp'
-          ? '#10b981'
-          : type === 'offramp'
-            ? '#f59e0b'
-            : '#8b5cf6',
-    }))
-  }, [filteredTransactions])
-
   const onTouchStart = (xPosition: number) => {
     touchStartX.current = xPosition
   }
@@ -564,19 +511,44 @@ export function TransactionHistory() {
           <thead>
             <tr className="border-b border-border">
               <th className="py-3 text-left">
-                <SortHeader label="Date" field="date" sortField={sortField} onSortChange={onSortChange} />
+                <SortHeader
+                  label="Date"
+                  field="date"
+                  sortField={sortField}
+                  onSortChange={onSortChange}
+                />
               </th>
               <th className="py-3 text-left">
-                <SortHeader label="Type / ID" field="type" sortField={sortField} onSortChange={onSortChange} />
+                <SortHeader
+                  label="Type / ID"
+                  field="type"
+                  sortField={sortField}
+                  onSortChange={onSortChange}
+                />
               </th>
               <th className="py-3 text-left">
-                <SortHeader label="Asset" field="asset" sortField={sortField} onSortChange={onSortChange} />
+                <SortHeader
+                  label="Asset"
+                  field="asset"
+                  sortField={sortField}
+                  onSortChange={onSortChange}
+                />
               </th>
               <th className="py-3 text-left">
-                <SortHeader label="Amount" field="amount" sortField={sortField} onSortChange={onSortChange} />
+                <SortHeader
+                  label="Amount"
+                  field="amount"
+                  sortField={sortField}
+                  onSortChange={onSortChange}
+                />
               </th>
               <th className="py-3 text-left">
-                <SortHeader label="Status" field="status" sortField={sortField} onSortChange={onSortChange} />
+                <SortHeader
+                  label="Status"
+                  field="status"
+                  sortField={sortField}
+                  onSortChange={onSortChange}
+                />
               </th>
               <th className="py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Action
@@ -606,29 +578,56 @@ export function TransactionHistory() {
                         className="border-b border-border/70 hover:bg-muted/30"
                         aria-rowindex={index + 1}
                       >
-                        <td className="py-4 text-sm text-foreground w-[120px]">{formatDate(tx.date)}</td>
+                        <td className="py-4 text-sm text-foreground w-[120px]">
+                          {formatDate(tx.date)}
+                        </td>
                         <td className="py-4">
                           <div className="flex items-start gap-3">
-                            <div className={cn('h-9 w-9 rounded-lg border flex items-center justify-center', typeConfig[tx.type].iconClassName)}>
+                            <div
+                              className={cn(
+                                'h-9 w-9 rounded-lg border flex items-center justify-center',
+                                typeConfig[tx.type].iconClassName
+                              )}
+                            >
                               <Icon className="h-4 w-4" />
                             </div>
                             <div>
-                              <div className="font-semibold text-foreground">{typeConfig[tx.type].label}</div>
+                              <div className="font-semibold text-foreground">
+                                {typeConfig[tx.type].label}
+                              </div>
                               <div className="text-xs text-muted-foreground">{tx.id}</div>
-                              <div className="mt-0.5 text-xs text-muted-foreground">{tx.counterparty}</div>
+                              <div className="mt-0.5 text-xs text-muted-foreground">
+                                {tx.counterparty}
+                              </div>
                             </div>
                           </div>
                         </td>
                         <td className="py-4 font-medium text-foreground">{tx.asset}</td>
-                        <td className="py-4 text-base font-bold text-foreground">NGN {formatAmount(tx.amount)}</td>
+                        <td className="py-4 text-base font-bold text-foreground">
+                          NGN {formatAmount(tx.amount)}
+                        </td>
                         <td className="py-4">
-                          <Badge variant="outline" className={cn('w-fit rounded-full border px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5', statusConfig[tx.status].className)}>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              'w-fit rounded-full border px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5',
+                              statusConfig[tx.status].className
+                            )}
+                          >
                             {renderStatusIcon(tx.status)}
                             {statusConfig[tx.status].label}
                           </Badge>
                         </td>
                         <td className="py-4">
-                          <Button variant="ghost" size="sm" className="h-9"><Eye className="h-4 w-4" />View</Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-9"
+                            onClick={() => handleViewTransaction(tx.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                            View
+                          </Button>
                         </td>
                       </tr>
                     </tbody>
@@ -654,26 +653,51 @@ export function TransactionHistory() {
                     <td className="py-4 text-sm text-foreground">{formatDate(tx.date)}</td>
                     <td className="py-4">
                       <div className="flex items-start gap-3">
-                        <div className={cn('h-9 w-9 rounded-lg border flex items-center justify-center', typeConfig[tx.type].iconClassName)}>
+                        <div
+                          className={cn(
+                            'h-9 w-9 rounded-lg border flex items-center justify-center',
+                            typeConfig[tx.type].iconClassName
+                          )}
+                        >
                           <Icon className="h-4 w-4" />
                         </div>
                         <div>
-                          <div className="font-semibold text-foreground">{typeConfig[tx.type].label}</div>
+                          <div className="font-semibold text-foreground">
+                            {typeConfig[tx.type].label}
+                          </div>
                           <div className="text-xs text-muted-foreground">{tx.id}</div>
-                          <div className="mt-0.5 text-xs text-muted-foreground">{tx.counterparty}</div>
+                          <div className="mt-0.5 text-xs text-muted-foreground">
+                            {tx.counterparty}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="py-4 font-medium text-foreground">{tx.asset}</td>
-                    <td className="py-4 text-base font-bold text-foreground">NGN {formatAmount(tx.amount)}</td>
+                    <td className="py-4 text-base font-bold text-foreground">
+                      NGN {formatAmount(tx.amount)}
+                    </td>
                     <td className="py-4">
-                      <Badge variant="outline" className={cn('w-fit rounded-full border px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5', statusConfig[tx.status].className)}>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'w-fit rounded-full border px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5',
+                          statusConfig[tx.status].className
+                        )}
+                      >
                         {renderStatusIcon(tx.status)}
                         {statusConfig[tx.status].label}
                       </Badge>
                     </td>
                     <td className="py-4">
-                      <Button variant="ghost" size="sm" className="h-9"><Eye className="h-4 w-4" />View</Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-9"
+                        onClick={() => handleViewTransaction(tx.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                        View
+                      </Button>
                     </td>
                   </motion.tr>
                 )
@@ -702,29 +726,52 @@ export function TransactionHistory() {
                   >
                     <div className="relative overflow-hidden rounded-xl border border-border bg-card h-full">
                       <div className="absolute inset-y-0 right-0 flex items-center gap-2 pr-2">
-                        <Button size="sm" variant="outline" className="h-9 px-3"><Eye className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="outline" className="h-9 px-3"><RefreshCcw className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="outline" className="h-9 px-3">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-9 px-3">
+                          <RefreshCcw className="h-4 w-4" />
+                        </Button>
                       </div>
                       <motion.div
                         animate={{ x: isSwipeActive ? -88 : 0 }}
                         transition={{ duration: 0.2 }}
-                        onTouchStart={(e) => onTouchStart(e.changedTouches[0].clientX)}
-                        onTouchEnd={(e) => onTouchEnd(e.changedTouches[0].clientX, tx.id)}
+                        onTouchStart={(e: React.TouchEvent<HTMLDivElement>) =>
+                          onTouchStart(e.changedTouches[0].clientX)
+                        }
+                        onTouchEnd={(e: React.TouchEvent<HTMLDivElement>) =>
+                          onTouchEnd(e.changedTouches[0].clientX, tx.id)
+                        }
                         className="relative z-10 bg-card p-3 h-full flex flex-col justify-center"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className={cn('h-8 w-8 rounded-lg border flex items-center justify-center shrink-0', typeConfig[tx.type].iconClassName)}>
+                            <div
+                              className={cn(
+                                'h-8 w-8 rounded-lg border flex items-center justify-center shrink-0',
+                                typeConfig[tx.type].iconClassName
+                              )}
+                            >
                               <Icon className="h-4 w-4" />
                             </div>
                             <div>
-                              <p className="font-semibold text-foreground text-sm">{typeConfig[tx.type].label}</p>
+                              <p className="font-semibold text-foreground text-sm">
+                                {typeConfig[tx.type].label}
+                              </p>
                               <p className="text-xs text-muted-foreground">{tx.id}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-foreground text-sm">NGN {formatAmount(tx.amount)}</p>
-                            <Badge variant="outline" className={cn('rounded-full border px-2 py-0.5 text-xs font-semibold flex items-center gap-1', statusConfig[tx.status].className)}>
+                            <p className="font-bold text-foreground text-sm">
+                              NGN {formatAmount(tx.amount)}
+                            </p>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                'rounded-full border px-2 py-0.5 text-xs font-semibold flex items-center gap-1',
+                                statusConfig[tx.status].className
+                              )}
+                            >
                               {renderStatusIcon(tx.status)}
                               {statusConfig[tx.status].label}
                             </Badge>
@@ -751,119 +798,66 @@ export function TransactionHistory() {
                   className="relative overflow-hidden rounded-xl border border-border bg-card"
                 >
                   <div className="absolute inset-y-0 right-0 flex items-center gap-2 pr-2">
-                    <Button size="sm" variant="outline" className="h-9 px-3"><Eye className="h-4 w-4" /></Button>
-                    <Button size="sm" variant="outline" className="h-9 px-3"><RefreshCcw className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="outline" className="h-9 px-3">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-9 px-3">
+                      <RefreshCcw className="h-4 w-4" />
+                    </Button>
                   </div>
                   <motion.div
                     animate={{ x: isSwipeActive ? -88 : 0 }}
                     transition={{ duration: 0.2 }}
-                    onTouchStart={(event) => onTouchStart(event.changedTouches[0].clientX)}
-                    onTouchEnd={(event) => onTouchEnd(event.changedTouches[0].clientX, tx.id)}
+                    onTouchStart={(event: React.TouchEvent<HTMLDivElement>) =>
+                      onTouchStart(event.changedTouches[0].clientX)
+                    }
+                    onTouchEnd={(event: React.TouchEvent<HTMLDivElement>) =>
+                      onTouchEnd(event.changedTouches[0].clientX, tx.id)
+                    }
                     className="relative z-10 bg-card p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        <div className={cn('h-9 w-9 rounded-lg border flex items-center justify-center shrink-0', typeConfig[tx.type].iconClassName)}>
+                        <div
+                          className={cn(
+                            'h-9 w-9 rounded-lg border flex items-center justify-center shrink-0',
+                            typeConfig[tx.type].iconClassName
+                          )}
+                        >
                           <Icon className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="font-semibold text-foreground">{typeConfig[tx.type].label}</p>
+                          <p className="font-semibold text-foreground">
+                            {typeConfig[tx.type].label}
+                          </p>
                           <p className="text-xs text-muted-foreground">{tx.id}</p>
                           <p className="mt-0.5 text-xs text-muted-foreground">{tx.counterparty}</p>
                         </div>
                       </div>
-                      <Badge variant="outline" className={cn('rounded-full border px-3 py-1 text-xs font-semibold flex items-center gap-1.5', statusConfig[tx.status].className)}>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'rounded-full border px-3 py-1 text-xs font-semibold flex items-center gap-1.5',
+                          statusConfig[tx.status].className
+                        )}
+                      >
                         {renderStatusIcon(tx.status)}
                         {statusConfig[tx.status].label}
                       </Badge>
                     </div>
                     <div className="mt-3 flex items-center justify-between">
                       <p className="text-sm text-muted-foreground">{formatDate(tx.date)}</p>
-                      <p className="text-base font-bold text-foreground">NGN {formatAmount(tx.amount)}</p>
+                      <p className="text-base font-bold text-foreground">
+                        NGN {formatAmount(tx.amount)}
+                      </p>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">Swipe left for actions</p>
                   </motion.div>
                 </motion.div>
               )
             })}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="space-y-3 md:hidden">
-        {paginatedTransactions.map((tx, index) => {
-          const Icon = typeConfig[tx.type].icon
-          const isSwipeActive = activeSwipeId === tx.id
-          return (
-            <motion.div
-              key={tx.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="relative overflow-hidden rounded-xl border border-border bg-card"
-            >
-              <div className="absolute inset-y-0 right-0 flex items-center gap-2 pr-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-9 px-3"
-                  onClick={() => handleViewTransaction(tx.id)}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-              </div>
-              <motion.div
-                animate={{ x: isSwipeActive ? -88 : 0 }}
-                transition={{ duration: 0.2 }}
-                onTouchStart={(event: React.TouchEvent<HTMLDivElement>) => onTouchStart(event.changedTouches[0].clientX)}
-                onTouchEnd={(event: React.TouchEvent<HTMLDivElement>) => onTouchEnd(event.changedTouches[0].clientX, tx.id)}
-                className="relative z-10 bg-card p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={cn(
-                        'h-9 w-9 rounded-lg border flex items-center justify-center shrink-0',
-                        typeConfig[tx.type].iconClassName
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{typeConfig[tx.type].label}</p>
-                      <button
-                        type="button"
-                        onClick={() => handleViewTransaction(tx.id)}
-                        className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors inline-flex items-center gap-1"
-                      >
-                        {tx.id}
-                        <ExternalLink className="h-3 w-3" />
-                      </button>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{tx.counterparty}</p>
-                    </div>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      'rounded-full border px-3 py-1 text-xs font-semibold flex items-center gap-1.5',
-                      statusConfig[tx.status].className
-                    )}
-                  >
-                    {renderStatusIcon(tx.status)}
-                    {statusConfig[tx.status].label}
-                  </Badge>
-                </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">{formatDate(tx.date)}</p>
-                  <p className="text-base font-bold text-foreground">
-                    NGN {formatAmount(tx.amount)}
-                  </p>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">Swipe left for actions</p>
-              </motion.div>
-            </motion.div>
-          )
-        })}
+          </div>
+        )}
       </div>
 
       {!isVirtualized && (

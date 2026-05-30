@@ -2,8 +2,7 @@
  * Tests for the MTN MoMo Collections API integration.
  */
 
-import { MtnMomoProvider } from '../mtn-momo'
-import { MobileMoneyError } from '../types'
+import { MtnMomoProvider, clearMtnMomoTokenCache } from '../mtn-momo'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -37,6 +36,7 @@ beforeEach(() => {
   process.env.MTN_MOMO_API_USER = '550e8400-e29b-41d4-a716-446655440000'
   process.env.MTN_MOMO_API_KEY = 'test-api-key'
   process.env.MTN_MOMO_ENV = 'sandbox'
+  clearMtnMomoTokenCache()
 })
 
 afterEach(() => {

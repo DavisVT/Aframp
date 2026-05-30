@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FiatCurrency } from '@/types/onramp'
 import type { OfframpAsset, OfframpChain } from '@/types/offramp'
 

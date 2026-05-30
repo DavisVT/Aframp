@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { useCallback } from 'react'
-import { Keypair } from '@stellar/stellar-sdk'
 import { walletSession } from '@/lib/wallet/session'
 
 declare global {
@@ -17,8 +16,6 @@ interface WalletProvider {
   id: string
   name: string
 }
-
-const STELLAR_WALLET_IDS = ['freighter', 'lobstr', 'stellar-xlm']
 
 export const useWalletConnect = () => {
   const router = useRouter()
@@ -47,6 +44,7 @@ export const useWalletConnect = () => {
 
       // Freighter connection
       if (walletId === 'freighter') {
+        let address: string
         if (!window.freighterApi?.getPublicKey) {
           address = generateMockAddress(walletId)
           return { address, walletName }
@@ -62,7 +60,7 @@ export const useWalletConnect = () => {
             return { address, walletName }
           }
         }
-        return { address: generateMockAddress(walletId), walletName }
+        return { address: address!, walletName }
       }
 
       // Coinbase Wallet

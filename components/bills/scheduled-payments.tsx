@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar, Pause, Play, MoreHorizontal, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { EmptyStateIllustration } from '@/components/ui/empty-state-illustration'
 
 interface ScheduledPayment {
   id: string

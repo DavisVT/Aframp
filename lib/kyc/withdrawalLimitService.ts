@@ -79,7 +79,10 @@ function _acquireLock(userId: string): { release: () => void; ready: Promise<voi
       })
     )
   })
-  return { ready, release }
+  return {
+    ready,
+    release: () => release(),
+  }
 }
 
 // ---------------------------------------------------------------------------

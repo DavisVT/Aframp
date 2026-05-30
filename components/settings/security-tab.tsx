@@ -20,7 +20,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 
@@ -185,7 +184,7 @@ export function SecurityTab() {
                         <div
                           key={i}
                           className={`w-4 h-4 rounded-sm ${
-                            Math.random() > 0.4 ? 'bg-black' : 'bg-white'
+                            (i * 7 + 3) % 10 > 3 ? 'bg-black' : 'bg-white'
                           }`}
                         />
                       ))}

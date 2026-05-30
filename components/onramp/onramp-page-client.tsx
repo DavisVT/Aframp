@@ -22,6 +22,12 @@ import { OnrampTestUtils } from '@/components/onramp/onramp-test-utils'
 import type { CryptoAsset, FiatCurrency } from '@/types/onramp'
 import { formatCurrency } from '@/lib/onramp/formatters'
 import { isValidStellarAddress } from '@/lib/onramp/validation'
+import {
+  calcReferralDiscount,
+  getAppliedReferralCode,
+  isReferralDiscountConsumed,
+  markReferralDiscountConsumed,
+} from '@/lib/referral'
 import type { OnrampOrder } from '@/types/onramp'
 import { Button } from '@/components/ui/button' // Added missing import for Button
 import { Skeleton } from '@/components/ui/skeleton'

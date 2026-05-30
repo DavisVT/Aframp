@@ -2,7 +2,7 @@
  * Tests for the M-Pesa STK Push integration.
  */
 
-import { MpesaProvider } from '../mpesa'
+import { MpesaProvider, clearMpesaTokenCache } from '../mpesa'
 import { MobileMoneyError } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -38,6 +38,7 @@ beforeEach(() => {
   process.env.MPESA_SHORTCODE = '174379'
   process.env.MPESA_PASSKEY = 'test-passkey'
   process.env.MPESA_ENV = 'sandbox'
+  clearMpesaTokenCache()
   jest.useFakeTimers()
 })
 
